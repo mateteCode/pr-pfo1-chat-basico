@@ -16,6 +16,7 @@ Usá funciones separadas para:
 fecha_envio, ip_cliente.
 ● Manejar errores (puerto ocupado, DB no accesible).
 ● Responde al cliente con: "Mensaje recibido: <timestamp>".
+
 Cliente:
 ● Debe tener la capacidad de conectarse al servidor y enviar múltiples mensajes
 hasta que el usuario escriba éxito.
