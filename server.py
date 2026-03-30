@@ -1,9 +1,10 @@
-HOST = "127.0.0.1"
-PORT = 5000
-
 import socket
 import threading
 from datetime import datetime
+import database
+
+HOST = "127.0.0.1"
+PORT = 5000
 
 
 def init_server():
@@ -35,8 +36,12 @@ def handle_client(client_sock):
         if message.lower() in ("éxito", "exito"):
           print(f"Cliente desde {ip}:{port} ha terminado la comunicación.")
           break
-        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        respuesta = f"(✔) Mensaje recibido: {ts}\n"
+        ts = database.save_message(message, ip)
+        if ts:
+          respuesta = f"(✔) Mensaje recibido: {ts}\n"
+        else:
+          ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+          respuesta = f"(✘) Mensaje recibido: {ts} pero no se pudo guardar el mensaje en la base de datos.\n"
         client_sock.sendall(respuesta.encode('utf-8'))
       except ConnectionResetError:
         print(f"(!) Conexión perdida con el cliente {ip}:{port}")
@@ -62,6 +67,7 @@ def accept_clients(server_sock):
 
 
 if __name__ == "__main__":
+  database.init_db()
   server_sock = init_server()
   if(server_sock):
     accept_clients(server_sock)
