@@ -62,16 +62,16 @@ def handle_client(client_sock):
 
 # Aceptar clientes y genera un hilo para cada uno
 def accept_clients(server_sock):
-  try:
-    while True:
+  # Ponemos un timeout de 1 segundo para detectar si se presiona ctrl+c
+  server_sock.settimeout(1.0)   
+  print("Presiona Ctrl+C para detener el servidor.")
+  while True:
+    try:
       client_sock, addr = server_sock.accept()
-      threading.Thread(target=handle_client, args=(client_sock,)).start()
-  except KeyboardInterrupt:
-    print("(!) Servidor detenido por el usuario.")
-  except Exception as e:
-    print(f"(!) Error al aceptar clientes: {e}")
-  finally:
-    server_sock.close()
+      t = threading.Thread(target=handle_client, args=(client_sock,), daemon=True).start()
+    except socket.timeout:
+      # Lapso de tiempo que permite capturar el ctrl+C
+      continue
 
 
 # Punto de entrada del programa
@@ -79,4 +79,14 @@ if __name__ == "__main__":
   database.init_db()
   server_sock = init_server()
   if(server_sock):
-    accept_clients(server_sock)
+    try:
+      accept_clients(server_sock)
+    except KeyboardInterrupt:
+      print("(!) Servidor detenido por el usuario.")
+    except Exception as e:
+      print(f"(!) Error al aceptar clientes: {e}")
+    finally:
+            # Este bloque se ejecuta SIEMPRE, ya sea por error o por Ctrl+C
+      server_sock.close()
+      print("(x) Socket cerrado. ¡Adiós!")
+    
